@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTO Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.raontec.carbookingapi.data.CarDAO">
+    <select id="selectCarList" parameterType="map" resultType="map">
+            SELECT
+                CAR_NUM,
+                CAR_MODL,
+                (SELECT COMM_CD_NAME FROM TB_COMM_CD WHERE COMM_CD = FUEL_TYPE_CD) AS FUEL_TYPE,
+                FUEL_TYPE_CD,
+                RMRK,
+                REG_DT
+            FROM
+                TB_CAR
+            WHERE 1=1
+                AND DEL_YN = 'N'
+                AND CAR_NUM IN (
+                    SELECT
+                        CAR_NUM
+                    FROM
+                        TB_CAR_BOOK_SCHD
+                    WHERE 1=1
+                        AND #{carNumber} != CAR_NUM
+                        AND
+                            CASE STRT_TMCD
+                                WHEN 'TDC2' THEN DATE_ADD(SYSDATE, INTERVAL 2 DAY) < DATE_ADD(STRT_DT, INTERVAL 14 HOUR)
+                                ELSE DATE_ADD(SYSDATE, INTERVAL 2 DAY) < DATE_ADD(STRT_DT, INTERVAL 0 HOUR) END
+                            OR
+                            CASE END_TMCD
+                                WHEN 'TDC1' THEN SYSDATE > DATE_ADD(END_DT, INTERVAL 14 HOUR)
+                                ELSE SYSDATE > DATE_ADD(END_DT, INTERVAL 23*60 + 59 MINUTE) END
+                )
+
+
+    </select>
+</mapper>
