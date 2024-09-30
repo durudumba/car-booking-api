@@ -4,31 +4,31 @@
 <mapper namespace="com.raontec.carbookingapi.data.CarDAO">
     <select id="selectCarList" parameterType="map" resultType="map">
             SELECT
-                CAR_NUM,
-                CAR_MODL,
-                (SELECT COMM_CD_NAME FROM TB_COMM_CD WHERE COMM_CD = FUEL_TYPE_CD) AS FUEL_TYPE,
-                FUEL_TYPE_CD,
-                RMRK,
-                REG_DT
+                A.CAR_NUM,
+                A.CAR_MODL,
+                (SELECT COMM_CD_NAME FROM TB_COMM_CD WHERE COMM_CD = A.FUEL_TYPE_CD) AS FUEL_TYPE,
+                A.FUEL_TYPE_CD,
+                A.RMRK,
+                (SELECT PARK_LOC FROM TB_PARK_LOC WHERE CAR_NUM = A.CAR_NUM) AS PARK_LOC,
+                TO_CHAR(A.REG_DT, 'YYYY-MM-DD HH24:MI:SS') AS REG_DT
             FROM
-                TB_CAR
+                TB_CAR A
             WHERE 1=1
                 AND DEL_YN = 'N'
-                AND CAR_NUM IN (
+                AND CAR_NUM NOT IN (
                     SELECT
                         CAR_NUM
                     FROM
                         TB_CAR_BOOK_SCHD
                     WHERE 1=1
-                        AND #{carNumber} != CAR_NUM
                         AND
                             CASE STRT_TMCD
-                                WHEN 'TDC2' THEN DATE_ADD(SYSDATE, INTERVAL 2 DAY) < DATE_ADD(STRT_DT, INTERVAL 14 HOUR)
-                                ELSE DATE_ADD(SYSDATE, INTERVAL 2 DAY) < DATE_ADD(STRT_DT, INTERVAL 0 HOUR) END
-                            OR
+                                WHEN 'TDC2' THEN STR_TO_DATE(#{eddt}, '%Y-%m-%d %H%i%s') <![CDATA[>]]> DATE_ADD(STRT_DT, INTERVAL 14 HOUR)
+                                ELSE STR_TO_DATE(#{eddt}, '%Y-%m-%d %H%i%s') <![CDATA[>]]> DATE_ADD(STRT_DT, INTERVAL 0 HOUR) END
+                        AND
                             CASE END_TMCD
-                                WHEN 'TDC1' THEN SYSDATE > DATE_ADD(END_DT, INTERVAL 14 HOUR)
-                                ELSE SYSDATE > DATE_ADD(END_DT, INTERVAL 23*60 + 59 MINUTE) END
+                                WHEN 'TDC1' THEN STR_TO_DATE(#{stdt}, '%Y-%m-%d %H%i%s') <![CDATA[<]]> DATE_ADD(END_DT, INTERVAL 14 HOUR)
+                                ELSE STR_TO_DATE(#{stdt}, '%Y-%m-%d %H%i%s') <![CDATA[<]]> DATE_ADD(END_DT, INTERVAL 23*60 + 59 MINUTE) END
                 )
 
 
