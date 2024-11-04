@@ -30,7 +30,13 @@
                                 WHEN 'TDC1' THEN STR_TO_DATE(#{stdt}, '%Y-%m-%d %H%i%s') <![CDATA[<]]> DATE_ADD(END_DT, INTERVAL 14 HOUR)
                                 ELSE STR_TO_DATE(#{stdt}, '%Y-%m-%d %H%i%s') <![CDATA[<]]> DATE_ADD(END_DT, INTERVAL 23*60 + 59 MINUTE) END
                 )
-
-
     </select>
+
+    <delete id="deleteExpiredSchedule">
+        DELETE FROM
+            TB_CAR_BOOK_SCHD
+        WHERE 1=1
+            AND STRT_DT <![CDATA[<]]> NOW()
+            AND END_DT <![CDATA[<]]> NOW()
+    </delete>
 </mapper>

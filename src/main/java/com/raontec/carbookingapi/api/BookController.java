@@ -1,7 +1,7 @@
 package com.raontec.carbookingapi.api;
 
 import com.raontec.carbookingapi.data.BookDAO;
-import com.raontec.carbookingapi.vo.BookAppFormVO;
+import com.raontec.carbookingapi.objects.BookAppFormVO;
 import jakarta.validation.Valid;
 import jdk.jfr.Description;
 import lombok.RequiredArgsConstructor;

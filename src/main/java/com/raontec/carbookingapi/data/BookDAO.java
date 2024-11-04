@@ -1,6 +1,6 @@
 package com.raontec.carbookingapi.data;
 
-import com.raontec.carbookingapi.vo.BookAppFormVO;
+import com.raontec.carbookingapi.objects.BookAppFormVO;
 import org.apache.ibatis.annotations.Mapper;
 
 @Mapper

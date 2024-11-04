@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTO Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.raontec.carbookingapi.data.UserDAO">
+    <insert id="insertUser" parameterType="map">
+        INSERT INTO TB_USER
+            (
+                USER_ID,
+                USER_PW,
+                USER_NAME,
+                USER_RANK,
+                REG_DT
+            )
+        VALUES
+            (
+                #{userId},
+                #{userPw},
+                #{userName},
+                1,
+                NOW()
+            )
+    </insert>
+
+    <select id="getUserInfo" parameterType="string" resultType="com.raontec.carbookingapi.objects.UserVO">
+        SELECT
+            USER_ID as userId,
+            USER_PW as userPw
+        FROM
+            TB_USER
+        WHERE 1=1
+            AND USER_ID = #{userId}
+    </select>
+
+    <select id="getAccessableMenuList" parameterType="string" resultType="map">
+        SELECT
+            UM.MENU_ID,
+            UM.MENU_NAME,
+            CASE U.USER_RANK <![CDATA[<=]]> UM.PRMT_MAX_RANK
+                WHEN 1 THEN 'Y'
+                ELSE 'N' END PRMT_ACCS
+        FROM
+            TB_USER U, TB_USER_MENU UM
+        WHERE 1=1
+            AND U.USER_ID = #{userId};
+    </select>
+</mapper>

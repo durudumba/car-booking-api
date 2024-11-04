@@ -1,15 +1,14 @@
 package com.raontec.carbookingapi.api;
 
 import com.raontec.carbookingapi.data.CarDAO;
-import com.raontec.carbookingapi.vo.BookAppFormVO;
-import jakarta.validation.Valid;
+import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
 import java.util.Map;
 
 @Controller
@@ -22,8 +21,19 @@ public class CarController {
 
     private final CarDAO carDAO;
 
+    @PostConstruct
+    @Scheduled(cron = "0 59 23 * * ?")
+    public ResponseEntity<?> deleteExpiredSchedule() {
+        return ResponseEntity.ok(carDAO.deleteExpiredSchedule());
+    }
+
     @GetMapping(value="selectCarList", produces = {"application/json"})
-    public List<Map<String, String>> selectCarList(@RequestParam Map<String, String> param) {
-        return carDAO.selectCarList(param);
+    public ResponseEntity<?> selectCarList(@RequestParam Map<String, String> param) {
+        try {
+            return ResponseEntity.ok(carDAO.selectCarList(param));
+        } catch (Exception e) {
+            log.error(e.getMessage());
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
     }
 }

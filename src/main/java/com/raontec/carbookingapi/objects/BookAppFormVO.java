@@ -1,6 +1,5 @@
-package com.raontec.carbookingapi.vo;
+package com.raontec.carbookingapi.objects;
 
-import jakarta.validation.constraints.Pattern;
 import jdk.jfr.Description;
 import lombok.Data;
 import lombok.NonNull;
