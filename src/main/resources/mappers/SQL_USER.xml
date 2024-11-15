@@ -31,16 +31,31 @@
             AND USER_ID = #{userId}
     </select>
 
+    <select id="selectUserInfo" parameterType="string" resultType="map">
+        SELECT
+            USER_ID,
+            USER_PW,
+            USER_NAME,
+            USER_RANK,
+            REG_DT,
+            UPD_DT
+        FROM
+            TB_USER
+        WHERE 1=1
+            AND USER_ID = #{userID}
+    </select>
+
     <select id="getAccessableMenuList" parameterType="string" resultType="map">
         SELECT
             UM.MENU_ID,
             UM.MENU_NAME,
-            CASE U.USER_RANK <![CDATA[<=]]> UM.PRMT_MAX_RANK
+            CASE U.USER_RANK <![CDATA[<=]]> UM.PRMT_MIN_RANK
                 WHEN 1 THEN 'Y'
                 ELSE 'N' END PRMT_ACCS
         FROM
             TB_USER U, TB_USER_MENU UM
         WHERE 1=1
-            AND U.USER_ID = #{userId};
+            AND U.USER_ID = #{userId}
+            AND UM.DEL_YN = 'N'
     </select>
 </mapper>

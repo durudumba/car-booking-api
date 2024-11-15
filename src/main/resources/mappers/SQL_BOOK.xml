@@ -38,7 +38,8 @@
 
     <insert id="insertCarBookHistory" parameterType="BookAppFormVO">
         INSERT INTO TH_CAR_BOOK
-        (
+            (
+            BOOK_ID,
             CAR_NUM,
             REQ_TYPE,
             CAR_DRVR,
@@ -52,23 +53,73 @@
             END_TMCD,
             RMRK,
             REG_DT
-        )
+            )
         VALUES
             (
-                #{carNumber},
-                0,
-                #{driver},
-                #{passengers},
-                #{destination},
-                #{usePropose},
-                #{submitter},
-                #{startDate},
-                #{startTimeCd},
-                #{endDate},
-                #{endTimeCd},
-                #{rmrk},
-                NOW()
+            #{bookId},
+            #{carNumber},
+            0,
+            #{driver},
+            #{passengers},
+            #{destination},
+            #{usePropose},
+            #{submitter},
+            #{startDate},
+            #{startTimeCd},
+            #{endDate},
+            #{endTimeCd},
+            #{rmrk},
+            NOW()
             )
     </insert>
-    
+
+    <select id="getDrivingSchedule" parameterType="string" resultType="map">
+        SELECT
+            A.CAR_NUM,
+            A.CAR_DRVR,
+            A.CAR_PSGR,
+            A.DEST,
+            A.USE_PRPS,
+            A.STRT_DT,
+            A.STRT_TMCD,
+            (SELECT COMM_CD_NAME FROM TB_COMM_CD WHERE COMM_CD = A.STRT_TMCD) AS STRT_TM,
+            A.END_DT,
+            A.STRT_TMCD,
+            (SELECT COMM_CD_NAME FROM TB_COMM_CD WHERE COMM_CD = A.END_TMCD) AS END_TM,
+            B.CAR_MODL,
+            C.PARK_LOC
+        FROM
+            TB_CAR_BOOK_SCHD A LEFT JOIN TB_CAR B ON A.CAR_NUM = B.CAR_NUM
+                   LEFT JOIN TB_PARK_LOC C ON A.CAR_NUM = C.CAR_NUM
+        WHERE 1=1
+            AND A.SBMT_NAME =
+              (SELECT USER_NAME FROM TB_USER WHERE USER_ID = #{userId})
+    </select>
+
+    <select id="getDrivingHistory" parameterType="string" resultType="map">
+        SELECT
+            A.CAR_NUM,
+            A.CAR_DRVR,
+            A.CAR_PSGR,
+            A.DEST,
+            A.USE_PRPS,
+            A.STRT_DT,
+            A.STRT_TMCD,
+            (SELECT COMM_CD_NAME FROM TB_COMM_CD WHERE COMM_CD = A.STRT_TMCD) AS STRT_TM,
+            A.END_DT,
+            A.STRT_TMCD,
+            (SELECT COMM_CD_NAME FROM TB_COMM_CD WHERE COMM_CD = A.END_TMCD) AS END_TM,
+            A.INPT_PARK_LOC_YN,
+            A.INPT_PARK_LOC,
+            B.CAR_MODL
+        FROM
+            TH_CAR_BOOK A LEFT JOIN TB_CAR B ON A.CAR_NUM = B.CAR_NUM
+        WHERE 1=1
+            AND A.SBMT_NAME =
+              (SELECT USER_NAME FROM TB_USER WHERE USER_ID = #{userId})
+            AND
+                CASE END_TMCD
+                WHEN 'TDC1' THEN SYSDATE() > DATE_ADD(END_DT, INTERVAL 14 HOUR)
+                ELSE SYSDATE() > DATE_ADD(END_DT, INTERVAL 23*60 + 59 MINUTE) END;
+    </select>
 </mapper>

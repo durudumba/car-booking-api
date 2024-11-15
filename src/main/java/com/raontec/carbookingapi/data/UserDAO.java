@@ -13,5 +13,6 @@ public interface UserDAO {
 
     int insertUser(Map map);
     Optional<UserVO> getUserInfo(String userId);
+    Map<String, String> selectUserInfo(String userId);
     List<Map<String, String>> getAccessableMenuList(String userId);
 }

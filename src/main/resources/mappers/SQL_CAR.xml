@@ -12,10 +12,11 @@
                 (SELECT PARK_LOC FROM TB_PARK_LOC WHERE CAR_NUM = A.CAR_NUM) AS PARK_LOC,
                 TO_CHAR(A.REG_DT, 'YYYY-MM-DD HH24:MI:SS') AS REG_DT
             FROM
-                TB_CAR A
+                TB_CAR A LEFT JOIN TB_CAR_STTS B ON A.CAR_NUM = B.CAR_NUM
             WHERE 1=1
-                AND DEL_YN = 'N'
-                AND CAR_NUM NOT IN (
+                AND A.DEL_YN = 'N'
+                AND B.CAR_STTS_CD = 'CST0'
+                AND A.CAR_NUM NOT IN (
                     SELECT
                         CAR_NUM
                     FROM
@@ -31,6 +32,132 @@
                                 ELSE STR_TO_DATE(#{stdt}, '%Y-%m-%d %H%i%s') <![CDATA[<]]> DATE_ADD(END_DT, INTERVAL 23*60 + 59 MINUTE) END
                 )
     </select>
+
+    <select id="getCarsInfo" resultType="map">
+        SELECT
+            A.CAR_NUM,
+            A.CAR_MODL,
+            (SELECT COMM_CD_NAME FROM TB_COMM_CD WHERE COMM_CD = A.FUEL_TYPE_CD) AS FUEL_TYPE,
+            A.FUEL_TYPE_CD,
+            B.CAR_STTS_CD,
+            (SELECT COMM_CD_NAME FROM TB_COMM_CD WHERE COMM_CD = B.CAR_STTS_CD) AS CAR_STTS,
+            C.PARK_LOC
+        FROM
+            TB_CAR A LEFT JOIN TB_CAR_STTS B ON A.CAR_NUM = B.CAR_NUM
+                LEFT JOIN TB_PARK_LOC C ON A.CAR_NUM = C.CAR_NUM
+        WHERE 1=1
+            AND A.DEL_YN = 'N'
+    </select>
+
+    <select id="getCarBookSchedule" parameterType="map" resultType="map">
+        SELECT
+            CAR_NUM
+        FROM
+            TB_CAR_BOOK_SCHD
+        WHERE 1=1
+            AND
+                CAR_NUM = #{carNumber}
+            AND
+                CASE END_TMCD
+                WHEN 'TDC1' THEN SYSDATE() <![CDATA[<]]> DATE_ADD(END_DT, INTERVAL 14 HOUR)
+                ELSE SYSDATE() <![CDATA[<]]> DATE_ADD(END_DT, INTERVAL 23*60 + 59 MINUTE) END;
+    </select>
+
+    <insert id="insertCarInfo" parameterType="map">
+        INSERT INTO TB_CAR
+            (CAR_NUM,
+             CAR_MODL,
+             FUEL_TYPE_CD,
+             RMRK,
+             DEL_YN,
+             REG_DT)
+        VALUES
+            (#{carNumber},
+             #{carModel},
+             #{fuelTypeCd},
+             #{rmrk},
+             'N',
+             NOW())
+    </insert>
+
+    <insert id="insertCarStatus" parameterType="map">
+        INSERT INTO TB_CAR_STTS
+            (CAR_NUM,
+             CAR_STTS_CD,
+             DEL_YN,
+             REG_DT)
+        VALUES
+            (#{carNumber},
+             #{carStatusCd},
+             'N',
+             NOW())
+    </insert>
+
+    <insert id="insertParkingLoc" parameterType="map">
+        INSERT INTO TB_PARK_LOC
+            (CAR_NUM,
+             PARK_LOC,
+             DEL_YN,
+             RMRK,
+             REG_DT)
+        VALUES
+            (#{carNumber},
+             #{parkingLocation},
+             'N',
+             #{rmrk},
+             NOW())
+    </insert>
+
+    <update id="updateCarInfo" parameterType="map">
+        UPDATE
+            TB_CAR A LEFT JOIN TB_CAR_STTS B ON A.CAR_NUM = B.CAR_NUM
+        SET
+            A.CAR_MODL = #{carModel},
+            A.FUEL_TYPE_CD = #{fuelTypeCd},
+            A.RMRK = #{rmrk},
+            A.UPD_DT = NOW(),
+            B.CAR_STTS_CD = #{carStatusCd},
+            B.UPD_DT = NOW()
+        WHERE 1=1
+            AND A.CAR_NUM = #{carNumber}
+            AND B.CAR_NUM = #{carNumber}
+    </update>
+
+    <update id="updateCarNumber" parameterType="map">
+        UPDATE
+            TB_CAR A LEFT JOIN TB_CAR_BOOK_SCHD B ON (A.CAR_NUM = B.CAR_NUM)
+                LEFT JOIN TB_CAR_STTS C ON (A.CAR_NUM = C.CAR_NUM)
+                LEFT JOIN TB_PARK_LOC D ON (A.CAR_NUM = D.CAR_NUM)
+        SET
+            A.CAR_NUM = #{newCarNumber},
+            A.UPD_DT = NOW(),
+            B.CAR_NUM = #{newCarNumber},
+            C.CAR_NUM = #{newCarNumber},
+            C.UPD_DT = NOW(),
+            D.CAR_NUM = #{newCarNumber}
+        WHERE 1=1
+          AND A.CAR_NUM = #{carNumber}
+    </update>
+
+    <update id="deleteCarInfo" parameterType="map">
+        UPDATE
+            TB_CAR A LEFT JOIN TB_CAR_STTS B ON A.CAR_NUM = B.CAR_NUM
+                LEFT JOIN TB_PARK_LOC C ON A.CAR_NUM = C.CAR_NUM
+        SET
+            A.DEL_YN = 'Y',
+            A.UPD_DT = NOW(),
+            B.DEL_YN = 'Y',
+            B.UPD_DT = NOW(),
+            C.DEL_YN = 'Y',
+            C.UPD_DT = NOW()
+        WHERE 1=1
+            AND A.CAR_NUM = #{carNumber}
+            AND B.CAR_NUM = #{carNumber}
+            AND C.CAR_NUM = #{carNumber}
+    </update>
+
+
+
 
     <delete id="deleteExpiredSchedule">
         DELETE FROM

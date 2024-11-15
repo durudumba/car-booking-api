@@ -67,11 +67,16 @@ public class UserController {
         return ResponseEntity.ok(result);
     }
 
+    @PostMapping(value = "/selectUserInfo", produces = {"application/json"})
+    public ResponseEntity<?> selectUserInfo(@RequestParam(value = "user_id") String userId) {
+        Map<String, String> resultMap = userDAO.selectUserInfo(userId);
+
+        return ResponseEntity.ok(resultMap);
+    }
+
 
     @GetMapping(value = "/getAccessableMenuList", produces = {"application/json"})
-    public ResponseEntity<?> getAccessableMenuList(@RequestParam Map<String, String> map) {
-        String userId = map.get("user_id");
-
+    public ResponseEntity<?> getAccessableMenuList(@RequestParam(value = "user_id") String userId) {
         List<Map<String, String>> resultList = userDAO.getAccessableMenuList(userId);
 
         return ResponseEntity.ok(resultList);
