@@ -36,12 +36,12 @@
             )
     </insert>
 
-    <insert id="insertCarBookHistory" parameterType="BookAppFormVO">
+    <insert id="insertCarBookHistory" parameterType="map">
         INSERT INTO TH_CAR_BOOK
             (
             BOOK_ID,
             CAR_NUM,
-            REQ_TYPE,
+            DRIV_YN,
             CAR_DRVR,
             CAR_PSGR,
             DEST,
@@ -51,30 +51,49 @@
             STRT_TMCD,
             END_DT,
             END_TMCD,
+            INPT_PARK_LOC,
             RMRK,
             REG_DT
             )
         VALUES
             (
-            #{bookId},
-            #{carNumber},
-            0,
-            #{driver},
-            #{passengers},
-            #{destination},
-            #{usePropose},
-            #{submitter},
-            #{startDate},
-            #{startTimeCd},
-            #{endDate},
-            #{endTimeCd},
-            #{rmrk},
+            #{BOOK_ID},
+            #{CAR_NUM},
+            #{DRIV_YN},
+            #{CAR_DRVR},
+            #{CAR_PSGR},
+            #{DEST},
+            #{USE_PRPS},
+            (SELECT USER_NAME FROM TB_USER WHERE USER_ID = #{USER_ID}),
+            #{STRT_DT},
+            #{STRT_TMCD},
+            #{END_DT},
+            #{END_TMCD},
+            #{PARK_LOC},
+            #{RMRK},
             NOW()
             )
     </insert>
 
+    <update id="updateParkingLocation" parameterType="map">
+        UPDATE
+            TB_PARK_LOC
+        SET
+            PARK_LOC = #{PARK_LOC},
+            UPD_DT = NOW()
+        WHERE
+            CAR_NUM = #{CAR_NUM}
+    </update>
+
+    <delete id="deleteCarSchedule" parameterType="map">
+        DELETE FROM
+                   TB_CAR_BOOK_SCHD
+        WHERE
+            BOOK_ID = #{BOOK_ID}
+    </delete>
     <select id="getDrivingSchedule" parameterType="string" resultType="map">
         SELECT
+            A.BOOK_ID,
             A.CAR_NUM,
             A.CAR_DRVR,
             A.CAR_PSGR,
@@ -84,10 +103,19 @@
             A.STRT_TMCD,
             (SELECT COMM_CD_NAME FROM TB_COMM_CD WHERE COMM_CD = A.STRT_TMCD) AS STRT_TM,
             A.END_DT,
-            A.STRT_TMCD,
+            A.END_TMCD,
             (SELECT COMM_CD_NAME FROM TB_COMM_CD WHERE COMM_CD = A.END_TMCD) AS END_TM,
+            IF(
+                CASE A.END_TMCD
+                WHEN 'TDC1' THEN SYSDATE() <![CDATA[<]]> DATE_ADD(A.END_DT, INTERVAL 14 HOUR)
+                ELSE SYSDATE() <![CDATA[<]]> DATE_ADD(A.END_DT, INTERVAL 23*60 + 59 MINUTE) END,
+                'N', 'Y'
+            ) AS RQIR_INPT_PARK_LOC,
+            A.RMRK,
             B.CAR_MODL,
-            C.PARK_LOC
+            C.PARK_LOC,
+            (SELECT CAR_DRVR FROM TH_CAR_BOOK WHERE CAR_NUM = A.CAR_NUM
+                    AND END_DT = (SELECT MAX(END_DT) FROM th_car_book WHERE CAR_NUM = A.CAR_NUM)) AS RCNT_USER
         FROM
             TB_CAR_BOOK_SCHD A LEFT JOIN TB_CAR B ON A.CAR_NUM = B.CAR_NUM
                    LEFT JOIN TB_PARK_LOC C ON A.CAR_NUM = C.CAR_NUM
@@ -109,7 +137,6 @@
             A.END_DT,
             A.STRT_TMCD,
             (SELECT COMM_CD_NAME FROM TB_COMM_CD WHERE COMM_CD = A.END_TMCD) AS END_TM,
-            A.INPT_PARK_LOC_YN,
             A.INPT_PARK_LOC,
             B.CAR_MODL
         FROM

@@ -52,16 +52,17 @@ CREATE TABLE IF NOT EXISTS `tb_car_book_schd` (
   `STRT_TMCD` varchar(5) NOT NULL DEFAULT 'TDC0' COMMENT '시작시간 코드',
   `END_DT` date NOT NULL COMMENT '종료일자',
   `END_TMCD` varchar(5) NOT NULL DEFAULT 'TDC0' COMMENT '종료일자 코드',
-  `INPT_PARK_LOC_YN` char(4) NOT NULL DEFAULT 'N' COMMENT '주차위치 입력여부',
   `RMRK` varchar(50) DEFAULT NULL COMMENT '비고',
   `REG_DT` datetime NOT NULL COMMENT '등록일자',
   PRIMARY KEY (`BOOK_ID`)
-) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='차량 예약 스케줄';
+) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='차량 예약 스케줄';
 
--- 테이블 데이터 carbooking.tb_car_book_schd:~2 rows (대략적) 내보내기
-INSERT INTO `tb_car_book_schd` (`BOOK_ID`, `CAR_NUM`, `CAR_DRVR`, `CAR_PSGR`, `DEST`, `USE_PRPS`, `SBMT_NAME`, `STRT_DT`, `STRT_TMCD`, `END_DT`, `END_TMCD`, `INPT_PARK_LOC_YN`, `RMRK`, `REG_DT`) VALUES
-	(1, '334마 1630', '관리자', '', '없음', '', '관리자', '2024-11-16', 'TDC1', '2024-11-17', 'TDC2', 'N', '', '2024-11-15 10:08:59'),
-	(3, '41노 2664', '관리자', '', '없음', '', '관리자', '2024-11-21', 'TDC1', '2024-11-29', 'TDC2', 'N', '', '2024-11-15 10:09:44');
+-- 테이블 데이터 carbooking.tb_car_book_schd:~5 rows (대략적) 내보내기
+INSERT INTO `tb_car_book_schd` (`BOOK_ID`, `CAR_NUM`, `CAR_DRVR`, `CAR_PSGR`, `DEST`, `USE_PRPS`, `SBMT_NAME`, `STRT_DT`, `STRT_TMCD`, `END_DT`, `END_TMCD`, `RMRK`, `REG_DT`) VALUES
+	(1, '41노 2664', '관리자', '', '없음', '', '관리자', '2024-10-19', 'TDC1', '2024-10-20', 'TDC2', '', '2024-11-18 17:41:33'),
+	(2, '41노 2664', '관리자', '', '없음', '', '관리자', '2024-10-21', 'TDC1', '2024-10-22', 'TDC1', '', '2024-11-18 17:41:41'),
+	(3, '41노 2664', '관리자', '', '없음', '', '관리자', '2024-11-23', 'TDC1', '2024-11-24', 'TDC1', '', '2024-11-18 17:41:50'),
+	(4, '41노 2664', '관리자', '', '없음', '', '관리자', '2024-11-25', 'TDC1', '2024-11-26', 'TDC1', '', '2024-11-18 17:41:57');
 
 -- 테이블 carbooking.tb_car_stts 구조 내보내기
 CREATE TABLE IF NOT EXISTS `tb_car_stts` (
@@ -120,10 +121,10 @@ CREATE TABLE IF NOT EXISTS `tb_park_loc` (
 
 -- 테이블 데이터 carbooking.tb_park_loc:~5 rows (대략적) 내보내기
 INSERT INTO `tb_park_loc` (`CAR_NUM`, `PARK_LOC`, `DEL_YN`, `RMRK`, `REG_DT`, `UPD_DT`) VALUES
-	('154고 4709', 'B3/L3', 'N', NULL, '2024-09-26 00:00:00', NULL),
+	('154고 4709', 'B2 / A3', 'N', NULL, '2024-09-26 00:00:00', '2024-11-18 16:12:49'),
 	('183거 2394', 'B3/L3', 'N', NULL, '2024-09-26 00:00:00', NULL),
 	('213구1522', 'B3/L3', 'N', NULL, '2024-09-26 00:00:00', NULL),
-	('334마 1630', 'B3/L3', 'N', NULL, '2024-09-26 00:00:00', NULL),
+	('334마 1630', 'B3/L3', 'N', NULL, '2024-09-26 00:00:00', '2024-11-18 18:09:16'),
 	('41노 2664', 'B3/L3', 'N', NULL, '2024-09-26 00:00:00', NULL);
 
 -- 테이블 carbooking.tb_user 구조 내보내기
@@ -163,7 +164,7 @@ INSERT INTO `tb_user_menu` (`MENU_ID`, `MENU_NAME`, `PRMT_MIN_RANK`, `DEL_YN`) V
 CREATE TABLE IF NOT EXISTS `th_car_book` (
   `BOOK_ID` int(11) NOT NULL COMMENT '예약 ID',
   `CAR_NUM` varchar(10) NOT NULL COMMENT '차량 번호',
-  `REQ_TYPE` int(11) NOT NULL COMMENT '요청 타입(0: 신청, 1:취소)',
+  `DRIV_YN` char(4) NOT NULL DEFAULT 'Y' COMMENT '운행여부',
   `CAR_DRVR` varchar(10) NOT NULL COMMENT '운전자',
   `CAR_PSGR` varchar(20) DEFAULT NULL COMMENT '동승자',
   `DEST` varchar(10) NOT NULL COMMENT '목적지',
@@ -173,18 +174,15 @@ CREATE TABLE IF NOT EXISTS `th_car_book` (
   `STRT_TMCD` varchar(5) NOT NULL DEFAULT 'TDC0' COMMENT '시작시간 코드',
   `END_DT` date NOT NULL COMMENT '종료일자',
   `END_TMCD` varchar(5) NOT NULL DEFAULT 'TDC0' COMMENT '종료시간 코드',
-  `INPT_PARK_LOC_YN` char(4) NOT NULL DEFAULT 'N' COMMENT '주차위치 기록여부',
   `INPT_PARK_LOC` varchar(10) DEFAULT NULL COMMENT '주차위치(층/구역)',
   `RMRK` varchar(50) DEFAULT NULL COMMENT '비고',
   `REG_DT` datetime NOT NULL COMMENT '등록일자',
-  PRIMARY KEY (`BOOK_ID`,`REQ_TYPE`)
+  PRIMARY KEY (`BOOK_ID`) USING BTREE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='차량 신청 기록';
 
--- 테이블 데이터 carbooking.th_car_book:~3 rows (대략적) 내보내기
-INSERT INTO `th_car_book` (`BOOK_ID`, `CAR_NUM`, `REQ_TYPE`, `CAR_DRVR`, `CAR_PSGR`, `DEST`, `USE_PRPS`, `SBMT_NAME`, `STRT_DT`, `STRT_TMCD`, `END_DT`, `END_TMCD`, `INPT_PARK_LOC_YN`, `INPT_PARK_LOC`, `RMRK`, `REG_DT`) VALUES
-	(1, '334마 1630', 0, '관리자', '', '없음', '', '관리자', '2024-10-16', 'TDC1', '2024-10-17', 'TDC2', 'N', NULL, '', '2024-11-15 10:08:59'),
-	(2, '41노 2664', 0, '관리자', '', '없음', '', '관리자', '2024-10-16', 'TDC1', '2024-10-17', 'TDC2', 'N', NULL, '', '2024-11-15 10:09:12'),
-	(3, '41노 2664', 0, '관리자', '', '없음', '', '관리자', '2024-11-21', 'TDC1', '2024-11-29', 'TDC2', 'N', NULL, '', '2024-11-15 10:09:44');
+-- 테이블 데이터 carbooking.th_car_book:~0 rows (대략적) 내보내기
+INSERT INTO `th_car_book` (`BOOK_ID`, `CAR_NUM`, `DRIV_YN`, `CAR_DRVR`, `CAR_PSGR`, `DEST`, `USE_PRPS`, `SBMT_NAME`, `STRT_DT`, `STRT_TMCD`, `END_DT`, `END_TMCD`, `INPT_PARK_LOC`, `RMRK`, `REG_DT`) VALUES
+	(5, '334마 1630', 'N', '관리자', '', '없음', '', '관리자', '2024-11-19', 'TDC1', '2024-11-20', 'TDC2', 'B3/L3', '', '2024-11-18 18:09:16');
 
 /*!40103 SET TIME_ZONE=IFNULL(@OLD_TIME_ZONE, 'system') */;
 /*!40101 SET SQL_MODE=IFNULL(@OLD_SQL_MODE, '') */;

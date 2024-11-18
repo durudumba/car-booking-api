@@ -10,7 +10,9 @@ import java.util.Map;
 public interface BookDAO {
 
     int insertCarBook(BookAppFormVO bookAppForm);
-    int insertCarBookHistory(BookAppFormVO bookAppForm);
+    int insertCarBookHistory(Map map);
+    int updateParkingLocation(Map map);
+    int deleteCarSchedule(Map map);
 
     List<Map<String, String>> getDrivingHistory(String userId);
     List<Map<String, String>> getDrivingSchedule(String userId);
