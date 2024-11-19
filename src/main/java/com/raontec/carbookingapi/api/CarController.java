@@ -24,12 +24,12 @@ public class CarController {
 
     private final CarDAO carDAO;
 
-    @Description(value="만료된 차량예약 스케줄 삭제")
-    @PostConstruct
-    @Scheduled(cron = "0 59 23 * * ?")
-    public ResponseEntity<?> deleteExpiredSchedule() {
-        return ResponseEntity.ok(carDAO.deleteExpiredSchedule());
-    }
+//    @Description(value="만료된 차량예약 스케줄 삭제")
+//    @PostConstruct
+//    @Scheduled(cron = "0 59 23 * * ?")
+//    public ResponseEntity<?> deleteExpiredSchedule() {
+//        return ResponseEntity.ok(carDAO.deleteExpiredSchedule());
+//    }
 
     @Description(value = "예약가능 차량목록")
     @GetMapping(value = "/selectCarList", produces = {"application/json"})

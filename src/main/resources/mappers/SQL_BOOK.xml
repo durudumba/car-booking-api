@@ -69,7 +69,7 @@
             #{STRT_TMCD},
             #{END_DT},
             #{END_TMCD},
-            #{PARK_LOC},
+            IF(DRIV_YN = 'Y', #{PARK_LOC}, null),
             #{RMRK},
             NOW()
             )
@@ -114,18 +114,21 @@
             A.RMRK,
             B.CAR_MODL,
             C.PARK_LOC,
-            (SELECT CAR_DRVR FROM TH_CAR_BOOK WHERE CAR_NUM = A.CAR_NUM
-                    AND END_DT = (SELECT MAX(END_DT) FROM th_car_book WHERE CAR_NUM = A.CAR_NUM)) AS RCNT_USER
+            NVL((SELECT CAR_DRVR FROM TH_CAR_BOOK WHERE CAR_NUM = A.CAR_NUM
+                    AND END_DT = (SELECT MAX(END_DT) FROM th_car_book WHERE CAR_NUM = A.CAR_NUM)), '없음') AS RCNT_USER
         FROM
             TB_CAR_BOOK_SCHD A LEFT JOIN TB_CAR B ON A.CAR_NUM = B.CAR_NUM
                    LEFT JOIN TB_PARK_LOC C ON A.CAR_NUM = C.CAR_NUM
         WHERE 1=1
             AND A.SBMT_NAME =
               (SELECT USER_NAME FROM TB_USER WHERE USER_ID = #{userId})
+        ORDER BY A.END_DT, A.END_TMCD, A.BOOK_ID
     </select>
 
     <select id="getDrivingHistory" parameterType="string" resultType="map">
         SELECT
+            A.BOOK_ID,
+            IF(A.DRIV_YN='Y', '운행','미운행/취소') AS DRIV_YN,
             A.CAR_NUM,
             A.CAR_DRVR,
             A.CAR_PSGR,
@@ -135,18 +138,19 @@
             A.STRT_TMCD,
             (SELECT COMM_CD_NAME FROM TB_COMM_CD WHERE COMM_CD = A.STRT_TMCD) AS STRT_TM,
             A.END_DT,
-            A.STRT_TMCD,
+            A.END_TMCD,
             (SELECT COMM_CD_NAME FROM TB_COMM_CD WHERE COMM_CD = A.END_TMCD) AS END_TM,
-            A.INPT_PARK_LOC,
+            NVL(A.INPT_PARK_LOC, '없음') AS INPT_PARK_LOC,
             B.CAR_MODL
         FROM
             TH_CAR_BOOK A LEFT JOIN TB_CAR B ON A.CAR_NUM = B.CAR_NUM
         WHERE 1=1
             AND A.SBMT_NAME =
               (SELECT USER_NAME FROM TB_USER WHERE USER_ID = #{userId})
-            AND
-                CASE END_TMCD
-                WHEN 'TDC1' THEN SYSDATE() > DATE_ADD(END_DT, INTERVAL 14 HOUR)
-                ELSE SYSDATE() > DATE_ADD(END_DT, INTERVAL 23*60 + 59 MINUTE) END;
+#             AND
+#                 CASE END_TMCD
+#                 WHEN 'TDC1' THEN SYSDATE() > DATE_ADD(END_DT, INTERVAL 14 HOUR)
+#                 ELSE SYSDATE() > DATE_ADD(END_DT, INTERVAL 23*60 + 59 MINUTE) END
+        ORDER BY A.END_DT DESC, A.END_TMCD DESC, A.BOOK_ID
     </select>
 </mapper>
