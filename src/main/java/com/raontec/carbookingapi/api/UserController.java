@@ -10,6 +10,8 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.annotation.Description;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
@@ -19,6 +21,9 @@ import org.springframework.stereotype.Controller;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
+import java.sql.SQLException;
+import java.sql.SQLIntegrityConstraintViolationException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -35,8 +40,14 @@ public class UserController {
     private final AuthenticationManagerBuilder authenticationManagerBuilder;
     private final TokenProvider tokenProvider;
 
+    @Description(value = "로그인")
     @PostMapping(value="/login")
     public ResponseEntity<?> login (LoginRequestDto loginDto, HttpServletRequest request) {
+        if(userDAO.isDeniedUser(loginDto.getUserId()).equals("Y")) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body("접근 제한된 계정입니다");
+        }
+
         try {
             UsernamePasswordAuthenticationToken authenticationToken = loginDto.toAuthentication();
             Authentication authentication = authenticationManagerBuilder.getObject().authenticate(authenticationToken);
@@ -44,14 +55,19 @@ public class UserController {
 
             return ResponseEntity.ok(tokenDto);
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("아이디와 비밀번호를 확인하세요");
         }
     }
 
+    @Description(value = "회원가입")
     @Transactional
     @PostMapping(value="/sign-up", produces = {"application/json"})
     public ResponseEntity<?> insertUser(UserVO vo) {
-        int result = 0;
+        if(userDAO.getUserInfo(vo.getUserId()).isPresent()) {
+            return ResponseEntity.status(HttpStatus.CONFLICT)
+                    .body("해당 ID는 사용할 수 없습니다");
+        }
 
         HashMap<String, String> map = new HashMap<>();
         map.put("userId", vo.getUserId());
@@ -59,26 +75,84 @@ public class UserController {
         map.put("userName", vo.getUserName());
 
         try {
-            result = userDAO.insertUser(map);
-        } catch (Exception e) {
-            log.error(e.getMessage());
+            userDAO.insertUser(map);
+        } catch (RuntimeException e) {
+            log.error("insertUser RuntimeException");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("회원가입 실패");
         }
 
-        return ResponseEntity.ok(result);
+        return ResponseEntity.ok().build();
     }
 
+    @Description(value = "사용자 정보 조회")
     @PostMapping(value = "/selectUserInfo", produces = {"application/json"})
     public ResponseEntity<?> selectUserInfo(@RequestParam(value = "user_id") String userId) {
-        Map<String, String> resultMap = userDAO.selectUserInfo(userId);
-
+        Map<String, String> resultMap = new HashMap<>();
+        try {
+            resultMap = userDAO.selectUserInfo(userId);
+        } catch (RuntimeException e) {
+            log.error("selectUserInfo RuntimeException");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("사용자 정보조회 에러!");
+        }
         return ResponseEntity.ok(resultMap);
     }
 
 
+    @Description(value = "사용자별 접근가능 메뉴목록")
     @GetMapping(value = "/getAccessableMenuList", produces = {"application/json"})
     public ResponseEntity<?> getAccessableMenuList(@RequestParam(value = "user_id") String userId) {
-        List<Map<String, String>> resultList = userDAO.getAccessableMenuList(userId);
+        List<Map<String, String>> resultList = new ArrayList<>();
+        try {
+            resultList = userDAO.getAccessableMenuList(userId);
+        } catch (RuntimeException e) {
+            log.error("getAccessableMenuList RuntimeException");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("접근가능 메뉴목록 조회 에러!");
+        }
 
         return ResponseEntity.ok(resultList);
+    }
+
+    @Description(value = "사용자 목록 조회")
+    @GetMapping(value = "/selectUserList", produces = {"application/json"})
+    public ResponseEntity<?> selectUserList(){
+        List<Map<String, String>> resultList = new ArrayList<>();
+        try {
+            resultList = userDAO.selectUserList();
+        } catch (RuntimeException e) {
+            log.error("selectUserList RuntimeException");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("사용자 목록 조회 에러!");
+        }
+        return ResponseEntity.ok(resultList);
+    }
+
+    @Description(value = "사용자 접근권한 조회")
+    @PostMapping(value = "/getPageAccessAuth", produces = {"application/json"})
+    public ResponseEntity<?> getPageAccessAuth(@RequestParam Map<String, String> param) {
+        boolean result = false;
+        try {
+            result = userDAO.getPageAccessAuth(param).equals("Y");
+        } catch (RuntimeException e) {
+            log.error("getPageAccessAuth RuntimeException");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("사용자 접근권한 조회 에러!");
+        }
+        return ResponseEntity.ok(result);
+    }
+
+    @Description(value = "사용자 정보 수정")
+    @PostMapping(value = "/updateUserInfo", produces = {"application/json"})
+    public ResponseEntity<?> updateUserInfo(@RequestParam Map<String, String> param) {
+        try {
+            userDAO.updateUserInfo(param);
+        } catch (RuntimeException e) {
+            log.error("updateUserInfo RuntimeException");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("사용자 정보 수정 에러!");
+        }
+        return ResponseEntity.ok().build();
     }
 }

@@ -14,6 +14,8 @@ import org.springframework.stereotype.Controller;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 @Controller
@@ -43,13 +45,28 @@ public class BookController {
     @Description(value = "사용자별 운행 스케줄 조회")
     @GetMapping(value="/getDrivingSchedule", produces = {"application/json"})
     public ResponseEntity<?> getDrivingSchedule(@RequestParam String userId) {
-        return ResponseEntity.ok(bookDAO.getDrivingSchedule(userId));
+        List<Map<String, String>> resultList = new ArrayList<>();
+
+        try {
+            resultList = bookDAO.getDrivingSchedule(userId);
+        } catch(RuntimeException e) {
+            log.error("getDrivingSchedule RuntimeException");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("운행 스케줄 조회 에러!");
+        }
+        return ResponseEntity.ok(resultList);
     }
 
     @Description(value = "사용자별 운행 기록 조회")
     @GetMapping(value = "/getDrivingHistory", produces = {"application/json"})
     public ResponseEntity<?> getDrivingHistory(@RequestParam String userId) {
-        return ResponseEntity.ok(bookDAO.getDrivingHistory(userId));
+        List<Map<String, String>> resultList = new ArrayList<>();
+        try {
+            resultList = bookDAO.getDrivingHistory(userId);
+        } catch(RuntimeException e) {
+            log.error("getDrivingHistory RumtimeException");
+        }
+        return ResponseEntity.ok(resultList);
     }
 
     @Description(value = "운행 후 주차위치 등록")
@@ -61,6 +78,7 @@ public class BookController {
             bookDAO.updateParkingLocation(param);
             bookDAO.deleteCarSchedule(param);
         } catch(RuntimeException e) {
+            log.error("postDrivingRecord RuntimeException");
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("운행기록 작성에러!");
         }
