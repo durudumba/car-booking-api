@@ -113,6 +113,8 @@
             ) AS RQIR_INPT_PARK_LOC,
             A.RMRK,
             B.CAR_MODL,
+            B.FUEL_TYPE_CD,
+            (SELECT COMM_CD_NAME FROM TB_COMM_CD WHERE COMM_CD = B.FUEL_TYPE_CD) AS FUEL_TYPE,
             C.PARK_LOC,
             NVL((SELECT CAR_DRVR FROM TH_CAR_BOOK WHERE CAR_NUM = A.CAR_NUM
                     AND END_DT = (SELECT MAX(END_DT) FROM th_car_book WHERE CAR_NUM = A.CAR_NUM)), '없음') AS RCNT_USER

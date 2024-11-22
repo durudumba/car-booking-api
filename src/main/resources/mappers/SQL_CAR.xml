@@ -57,10 +57,6 @@
         WHERE 1=1
             AND
                 CAR_NUM = #{carNumber}
-            AND
-                CASE END_TMCD
-                WHEN 'TDC1' THEN SYSDATE() <![CDATA[<]]> DATE_ADD(END_DT, INTERVAL 14 HOUR)
-                ELSE SYSDATE() <![CDATA[<]]> DATE_ADD(END_DT, INTERVAL 23*60 + 59 MINUTE) END;
     </select>
 
     <insert id="insertCarInfo" parameterType="map">
