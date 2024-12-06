@@ -10,6 +10,7 @@ public interface CarDAO {
 
     List<Map<String, String>> selectCarList(Map<String, String> map);
     List<Map<String, String>> getCarsInfo();
+    Map<String, String> getCarInfo(String carNumber);
     List<Map<String, String>> getCarBookSchedule(Map<String, String> map);
 
     int insertCarInfo(Map<String, String> map);

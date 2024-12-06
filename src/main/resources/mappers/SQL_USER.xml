@@ -41,11 +41,12 @@
             AND USER_ID = #{userId}
     </select>
 
-    <select id="getPageAccessAuth" parameterType="map" resultType="string">
+    <select id="getPageAccessAuth" parameterType="map" resultType="map">
         SELECT
-            IF(A.USER_RANK > B.PRMT_MIN_RANK, 'N', 'Y') AS PRMT_YN
+            IF(A.USER_RANK > B.PRMT_MIN_RANK, 'N', 'Y') AS PRMT_YN,
+            A.DENY_USE_YN
         FROM
-            (SELECT USER_RANK FROM TB_USER WHERE USER_ID = #{userId}) A,
+            (SELECT USER_RANK, DENY_USE_YN FROM TB_USER WHERE USER_ID = #{userId}) A,
             (SELECT PRMT_MIN_RANK FROM TB_USER_MENU WHERE MENU_ID = #{menuId}) B
     </select>
 
@@ -100,4 +101,14 @@
         FROM
             TB_USER
     </select>
+
+    <delete id="deleteUserInfo" parameterType="map">
+        DELETE FROM TB_USER
+        WHERE USER_ID = #{userId}
+    </delete>
+
+    <delete id="deleteUserSchedule" parameterType="map">
+        DELETE FROM TB_CAR_BOOK_SCHD
+        WHERE SBMT_NAME = (SELECT USER_NAME FROM TB_USER WHERE USER_ID = #{userId})
+    </delete>
 </mapper>

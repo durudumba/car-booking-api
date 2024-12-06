@@ -15,6 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -44,7 +45,7 @@ public class BookController {
 
     @Description(value = "사용자별 운행 스케줄 조회")
     @GetMapping(value="/getDrivingSchedule", produces = {"application/json"})
-    public ResponseEntity<?> getDrivingSchedule(@RequestParam String userId) {
+    public ResponseEntity<?> getDrivingSchedule(@RequestParam(required = false) String userId) {
         List<Map<String, String>> resultList = new ArrayList<>();
 
         try {
@@ -59,7 +60,7 @@ public class BookController {
 
     @Description(value = "사용자별 운행 기록 조회")
     @GetMapping(value = "/getDrivingHistory", produces = {"application/json"})
-    public ResponseEntity<?> getDrivingHistory(@RequestParam String userId) {
+    public ResponseEntity<?> getDrivingHistory(@RequestParam(required = false) String userId) {
         List<Map<String, String>> resultList = new ArrayList<>();
         try {
             resultList = bookDAO.getDrivingHistory(userId);
@@ -83,6 +84,21 @@ public class BookController {
                     .body("운행기록 작성에러!");
         }
         return ResponseEntity.ok().build();
+    }
+
+    @Description(value = "주차위치 미등록 예약정보 조회")
+    @Transactional
+    @GetMapping(value = "/getUnrecordedBooking", produces = {"application/json"})
+    public ResponseEntity<?> getUnrecordedBooking(@RequestParam(required = false) String carNumber) {
+        List<Map<String, String>> resultList = new ArrayList<>();
+        try {
+            resultList = bookDAO.getUnrecordedBooking(carNumber);
+        } catch(RuntimeException e) {
+            log.error("getUnrecordedBooking RuntimeException");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("미등록 예약정보 조회 에러!");
+        }
+        return ResponseEntity.ok(resultList);
     }
 
     @Description(value = "주차위치 자동적용")

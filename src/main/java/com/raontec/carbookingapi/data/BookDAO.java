@@ -14,6 +14,8 @@ public interface BookDAO {
     int updateParkingLocation(Map map);
     int deleteCarSchedule(Map map);
 
+    List<Map<String, String>> getUnrecordedBooking(String carNumber);
+
     List<Map<String, String>> getDrivingHistory(String userId);
     List<Map<String, String>> getDrivingSchedule(String userId);
 

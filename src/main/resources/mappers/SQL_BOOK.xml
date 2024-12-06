@@ -115,22 +115,24 @@
             B.CAR_MODL,
             B.FUEL_TYPE_CD,
             (SELECT COMM_CD_NAME FROM TB_COMM_CD WHERE COMM_CD = B.FUEL_TYPE_CD) AS FUEL_TYPE,
-            C.PARK_LOC,
-            NVL((SELECT CAR_DRVR FROM TH_CAR_BOOK WHERE CAR_NUM = A.CAR_NUM
+            IF(C.PARK_LOC='', '-', C.PARK_LOC) AS PARK_LOC,
+            NVL((SELECT SBMT_NAME FROM TH_CAR_BOOK WHERE CAR_NUM = A.CAR_NUM
                     AND END_DT = (SELECT MAX(END_DT) FROM th_car_book WHERE CAR_NUM = A.CAR_NUM)), '없음') AS RCNT_USER
         FROM
             TB_CAR_BOOK_SCHD A LEFT JOIN TB_CAR B ON A.CAR_NUM = B.CAR_NUM
                    LEFT JOIN TB_PARK_LOC C ON A.CAR_NUM = C.CAR_NUM
         WHERE 1=1
-            AND A.SBMT_NAME =
+          <if test="userId!=null and !userId.equalsIgnoreCase('')">
+              AND A.SBMT_NAME =
               (SELECT USER_NAME FROM TB_USER WHERE USER_ID = #{userId})
+          </if>
         ORDER BY A.END_DT, A.END_TMCD, A.BOOK_ID
     </select>
 
     <select id="getDrivingHistory" parameterType="string" resultType="map">
         SELECT
             A.BOOK_ID,
-            IF(A.DRIV_YN='Y', '운행','미운행/취소') AS DRIV_YN,
+            IF(A.DRIV_YN='Y', '운행', '미운행/취소') AS DRIV_YN,
             A.CAR_NUM,
             A.CAR_DRVR,
             A.CAR_PSGR,
@@ -147,12 +149,43 @@
         FROM
             TH_CAR_BOOK A LEFT JOIN TB_CAR B ON A.CAR_NUM = B.CAR_NUM
         WHERE 1=1
-            AND A.SBMT_NAME =
-              (SELECT USER_NAME FROM TB_USER WHERE USER_ID = #{userId})
+            <if test="userId != null and !userId.equalsIgnoreCase('')">
+                AND A.SBMT_NAME =
+                (SELECT USER_NAME FROM TB_USER WHERE USER_ID = #{userId})
+            </if>
 #             AND
 #                 CASE END_TMCD
 #                 WHEN 'TDC1' THEN SYSDATE() > DATE_ADD(END_DT, INTERVAL 14 HOUR)
 #                 ELSE SYSDATE() > DATE_ADD(END_DT, INTERVAL 23*60 + 59 MINUTE) END
         ORDER BY A.END_DT DESC, A.END_TMCD DESC, A.BOOK_ID
+    </select>
+
+    <select id="getUnrecordedBooking" parameterType="string" resultType="map">
+        SELECT
+            BOOK_ID,
+            CAR_NUM,
+            CAR_DRVR,
+            CAR_PSGR,
+            DEST,
+            USE_PRPS,
+            SBMT_NAME,
+            STRT_DT,
+            (SELECT COMM_CD_NAME FROM TB_COMM_CD WHERE COMM_CD = STRT_TMCD) AS STRT_TM,
+            STRT_TMCD,
+            END_DT,
+            (SELECT COMM_CD_NAME FROM TB_COMM_CD WHERE COMM_CD = END_TMCD) AS END_TM,
+            END_TMCD,
+            RMRK,
+            STR_TO_DATE(REG_DT, '%Y-%m-%d %H%i%s') AS REG_DT
+        FROM
+            TB_CAR_BOOK_SCHD
+        WHERE 1=1
+          <if test="carNumber!=null and !carNumber.equalsIgnoreCase('')">
+              AND CAR_NUM = #{carNumber}
+          </if>
+            AND
+                CASE END_TMCD
+                WHEN 'TDC1' THEN SYSDATE() > DATE_ADD(END_DT, INTERVAL 14 HOUR)
+                ELSE SYSDATE() > DATE_ADD(END_DT, INTERVAL 23*60 + 59 MINUTE) END
     </select>
 </mapper>

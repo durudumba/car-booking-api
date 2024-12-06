@@ -41,12 +41,29 @@
             A.FUEL_TYPE_CD,
             B.CAR_STTS_CD,
             (SELECT COMM_CD_NAME FROM TB_COMM_CD WHERE COMM_CD = B.CAR_STTS_CD) AS CAR_STTS,
-            C.PARK_LOC
+            IF(C.PARK_LOC='', '-', C.PARK_LOC) AS PARK_LOC
         FROM
             TB_CAR A LEFT JOIN TB_CAR_STTS B ON A.CAR_NUM = B.CAR_NUM
                 LEFT JOIN TB_PARK_LOC C ON A.CAR_NUM = C.CAR_NUM
         WHERE 1=1
             AND A.DEL_YN = 'N'
+    </select>
+
+    <select id="getCarInfo" parameterType="string" resultType="map">
+        SELECT
+            A.CAR_NUM,
+            A.CAR_MODL,
+            (SELECT COMM_CD_NAME FROM TB_COMM_CD WHERE COMM_CD = A.FUEL_TYPE_CD) AS FUEL_TYPE,
+            A.FUEL_TYPE_CD,
+            B.CAR_STTS_CD,
+            (SELECT COMM_CD_NAME FROM TB_COMM_CD WHERE COMM_CD = B.CAR_STTS_CD) AS CAR_STTS,
+            IF(C.PARK_LOC='', '-', C.PARK_LOC) AS PARK_LOC
+        FROM
+            TB_CAR A LEFT JOIN TB_CAR_STTS B ON A.CAR_NUM = B.CAR_NUM
+                     LEFT JOIN TB_PARK_LOC C ON A.CAR_NUM = C.CAR_NUM
+        WHERE 1=1
+            AND A.DEL_YN = 'N'
+            AND A.CAR_NUM = #{carNumber}
     </select>
 
     <select id="getCarBookSchedule" parameterType="map" resultType="map">
@@ -55,8 +72,7 @@
         FROM
             TB_CAR_BOOK_SCHD
         WHERE 1=1
-            AND
-                CAR_NUM = #{carNumber}
+            AND CAR_NUM = #{carNumber}
     </select>
 
     <insert id="insertCarInfo" parameterType="map">

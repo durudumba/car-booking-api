@@ -13,6 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -78,7 +79,18 @@ public class CarController {
         String modCarNumber = param.get("modCarNumber");
 
         try {
+            System.out.println(param);
+
+            // 차량상태가 수정된 경우 해당 차량 스케줄 체크
+            if( !param.get("carStatusCd").equals("CST0")
+                && !carDAO.getCarBookSchedule(param).isEmpty()) {
+                return ResponseEntity.status(HttpStatus.CONFLICT)
+                        .body("예약된 일정이 있어 차량상태를 수정할 수 없습니다");
+            }
+
             carDAO.updateCarInfo(param);
+
+            // 차량번호가 수정된 경우
             if(modCarNumber != null && modCarNumber.equals("true")) {
                 carDAO.updateCarNumber(param);
             }
@@ -94,11 +106,13 @@ public class CarController {
     @Description(value = "차량관리 차량정보삭제")
     @PostMapping(value = "/deleteCarInfo", produces = {"application/json"})
     public ResponseEntity<?> deleteCarInfo(@RequestParam Map<String, String> param) {
-        if(!carDAO.getCarBookSchedule(param).isEmpty()) {
-            return ResponseEntity.status(HttpStatus.CONFLICT)
-                    .body("예약된 일정이 있어 차량을 삭제할 수 없습니다");
-        }
+
         try {
+            if(!carDAO.getCarBookSchedule(param).isEmpty()) {
+                return ResponseEntity.status(HttpStatus.CONFLICT)
+                        .body("예약된 일정이 있어 차량을 삭제할 수 없습니다");
+            }
+
             carDAO.deleteCarInfo(param);
         } catch(RuntimeException e) {
             log.error("deleteCarInfo RuntimeException");

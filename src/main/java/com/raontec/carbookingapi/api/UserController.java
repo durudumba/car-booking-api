@@ -132,26 +132,46 @@ public class UserController {
     @Description(value = "사용자 접근권한 조회")
     @PostMapping(value = "/getPageAccessAuth", produces = {"application/json"})
     public ResponseEntity<?> getPageAccessAuth(@RequestParam Map<String, String> param) {
-        boolean result = false;
+        Map<String, String> resultMap = new HashMap<>();
         try {
-            result = userDAO.getPageAccessAuth(param).equals("Y");
+            resultMap = userDAO.getPageAccessAuth(param);
+
         } catch (RuntimeException e) {
             log.error("getPageAccessAuth RuntimeException");
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("사용자 접근권한 조회 에러!");
         }
-        return ResponseEntity.ok(result);
+        return ResponseEntity.ok(resultMap);
     }
 
     @Description(value = "사용자 정보 수정")
+    @Transactional
     @PostMapping(value = "/updateUserInfo", produces = {"application/json"})
     public ResponseEntity<?> updateUserInfo(@RequestParam Map<String, String> param) {
         try {
+            if(param.get("denyUseYN").equals("Y")) {
+                userDAO.deleteUserSchedule(param);
+            }
             userDAO.updateUserInfo(param);
         } catch (RuntimeException e) {
             log.error("updateUserInfo RuntimeException");
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("사용자 정보 수정 에러!");
+        }
+        return ResponseEntity.ok().build();
+    }
+
+    @Description(value = "사용자 정보 삭제")
+    @Transactional
+    @DeleteMapping(value = "/deleteUserInfo", produces = {"application/json"})
+    public ResponseEntity<?> deleteUserInfo(@RequestParam Map<String, String> param) {
+        try {
+            userDAO.deleteUserSchedule(param);
+            userDAO.deleteUserInfo(param);
+        } catch (RuntimeException e) {
+            log.error("deleteUserInfo RuntimeException");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("사용자 정보 삭제 에러!");
         }
         return ResponseEntity.ok().build();
     }

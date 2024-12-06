@@ -14,8 +14,11 @@ public interface UserDAO {
 
     int insertUser(Map map);
     int updateUserInfo(Map map);
+    int deleteUserInfo(Map map);
+    int deleteUserSchedule(Map map);
+
     String isDeniedUser(String userId);
-    String getPageAccessAuth(Map mpa);
+    Map<String, String> getPageAccessAuth(Map map);
 
     Optional<UserVO> getUserInfo(String userId);
     Map<String, String> selectUserInfo(String userId);
