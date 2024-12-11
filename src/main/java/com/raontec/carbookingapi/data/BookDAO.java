@@ -13,6 +13,7 @@ public interface BookDAO {
     int insertCarBookHistory(Map map);
     int updateParkingLocation(Map map);
     int deleteCarSchedule(Map map);
+    int updateDrivingInfo(Map map);
 
     List<Map<String, String>> getUnrecordedBooking(String carNumber);
 

@@ -101,6 +101,19 @@ public class BookController {
         return ResponseEntity.ok(resultList);
     }
 
+    @Description(value = "운행 정보 수정")
+    @PostMapping(value = "/updateDrivingInfo", produces = {"application/json"})
+    public ResponseEntity<?> updateDrivingInfo(@RequestParam Map<String, String> param) {
+        try {
+            bookDAO.updateDrivingInfo(param);
+        } catch (RuntimeException e) {
+            log.error("updateDrivingInfo RuntimeException");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("운행 정보 수정 에러!");
+        }
+        return ResponseEntity.ok().build();
+    }
+
     @Description(value = "주차위치 자동적용")
     public void setCurrentParkingLocation() {
     }
