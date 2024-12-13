@@ -39,9 +39,10 @@
             A.CAR_MODL,
             (SELECT COMM_CD_NAME FROM TB_COMM_CD WHERE COMM_CD = A.FUEL_TYPE_CD) AS FUEL_TYPE,
             A.FUEL_TYPE_CD,
+            NVL(A.RMRK, '') AS RMRK,
             B.CAR_STTS_CD,
             (SELECT COMM_CD_NAME FROM TB_COMM_CD WHERE COMM_CD = B.CAR_STTS_CD) AS CAR_STTS,
-            IF(C.PARK_LOC='', '-', C.PARK_LOC) AS PARK_LOC
+            C.PARK_LOC
         FROM
             TB_CAR A LEFT JOIN TB_CAR_STTS B ON A.CAR_NUM = B.CAR_NUM
                 LEFT JOIN TB_PARK_LOC C ON A.CAR_NUM = C.CAR_NUM
@@ -123,13 +124,15 @@
     <update id="updateCarInfo" parameterType="map">
         UPDATE
             TB_CAR A LEFT JOIN TB_CAR_STTS B ON A.CAR_NUM = B.CAR_NUM
+                LEFT JOIN TB_PARK_LOC C ON A.CAR_NUM = C.CAR_NUM
         SET
             A.CAR_MODL = #{carModel},
             A.FUEL_TYPE_CD = #{fuelTypeCd},
             A.RMRK = #{rmrk},
             A.UPD_DT = NOW(),
             B.CAR_STTS_CD = #{carStatusCd},
-            B.UPD_DT = NOW()
+            B.UPD_DT = NOW(),
+            C.PARK_LOC = #{parkingLocation}
         WHERE 1=1
             AND A.CAR_NUM = #{carNumber}
             AND B.CAR_NUM = #{carNumber}

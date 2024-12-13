@@ -64,7 +64,7 @@
             #{CAR_PSGR},
             #{DEST},
             #{USE_PRPS},
-            (SELECT USER_NAME FROM TB_USER WHERE USER_ID = #{USER_ID}),
+            #{SBMT_NAME},
             #{STRT_DT},
             #{STRT_TMCD},
             #{END_DT},
@@ -91,7 +91,7 @@
         WHERE
             BOOK_ID = #{BOOK_ID}
     </delete>
-    <select id="getDrivingSchedule" parameterType="string" resultType="map">
+    <select id="getDrivingSchedule" parameterType="map" resultType="map">
         SELECT
             A.BOOK_ID,
             A.CAR_NUM,
@@ -116,9 +116,10 @@
             B.CAR_MODL,
             B.FUEL_TYPE_CD,
             (SELECT COMM_CD_NAME FROM TB_COMM_CD WHERE COMM_CD = B.FUEL_TYPE_CD) AS FUEL_TYPE,
-            IF(C.PARK_LOC='', '-', C.PARK_LOC) AS PARK_LOC,
+            C.PARK_LOC,
             NVL((SELECT SBMT_NAME FROM TH_CAR_BOOK WHERE CAR_NUM = A.CAR_NUM
-                    AND END_DT = (SELECT MAX(END_DT) FROM th_car_book WHERE CAR_NUM = A.CAR_NUM)), '없음') AS RCNT_USER
+                    AND END_DT = (SELECT MAX(END_DT) FROM th_car_book WHERE CAR_NUM = A.CAR_NUM)
+                    AND DRIV_YN = 'Y'), '') AS RCNT_USER
         FROM
             TB_CAR_BOOK_SCHD A LEFT JOIN TB_CAR B ON A.CAR_NUM = B.CAR_NUM
                    LEFT JOIN TB_PARK_LOC C ON A.CAR_NUM = C.CAR_NUM
@@ -127,10 +128,18 @@
               AND A.SBMT_NAME =
               (SELECT USER_NAME FROM TB_USER WHERE USER_ID = #{userId})
           </if>
-        ORDER BY A.END_DT, A.END_TMCD, A.BOOK_ID
+        <if test="keyword!=null and !keyword.equalsIgnoreCase('')">
+            AND
+            (
+                   A.CAR_NUM  LIKE CONCAT('%', #{keyword}, '%')
+                OR B.CAR_MODL LIKE CONCAT('%', #{keyword}, '%')
+                OR A.CAR_DRVR LIKE CONCAT('%', #{keyword}, '%')
+            )
+        </if>
+        ORDER BY A.END_DT, A.END_TMCD, A.BOOK_ID DESC
     </select>
 
-    <select id="getDrivingHistory" parameterType="string" resultType="map">
+    <select id="getDrivingHistory" parameterType="map" resultType="map">
         SELECT
             A.BOOK_ID,
             IF(A.DRIV_YN='Y', '운행', '미운행/취소') AS DRIV_YN,
@@ -145,7 +154,7 @@
             A.END_DT,
             A.END_TMCD,
             (SELECT COMM_CD_NAME FROM TB_COMM_CD WHERE COMM_CD = A.END_TMCD) AS END_TM,
-            NVL(A.INPT_PARK_LOC, '없음') AS INPT_PARK_LOC,
+            NVL(A.INPT_PARK_LOC, '') AS INPT_PARK_LOC,
             B.CAR_MODL,
             A.RMRK
         FROM
@@ -155,14 +164,17 @@
                 AND A.SBMT_NAME =
                 (SELECT USER_NAME FROM TB_USER WHERE USER_ID = #{userId})
             </if>
-#             AND
-#                 CASE END_TMCD
-#                 WHEN 'TDC1' THEN SYSDATE() > DATE_ADD(END_DT, INTERVAL 14 HOUR)
-#                 ELSE SYSDATE() > DATE_ADD(END_DT, INTERVAL 23*60 + 59 MINUTE) END
-        ORDER BY A.END_DT DESC, A.END_TMCD DESC, A.BOOK_ID
+            <if test="keyword!=null and !keyword.equalsIgnoreCase('')">
+                AND (
+                   A.CAR_NUM  LIKE CONCAT('%', #{keyword}, '%')
+                OR B.CAR_MODL LIKE CONCAT('%', #{keyword}, '%')
+                OR A.CAR_DRVR LIKE CONCAT('%', #{keyword}, '%')
+                )
+            </if>
+        ORDER BY A.END_DT DESC, A.END_TMCD DESC, A.BOOK_ID DESC
     </select>
 
-    <select id="getUnrecordedBooking" parameterType="string" resultType="map">
+    <select id="getUnrecordedBooking" parameterType="map" resultType="map">
         SELECT
             BOOK_ID,
             CAR_NUM,
@@ -189,6 +201,13 @@
                 CASE END_TMCD
                 WHEN 'TDC1' THEN SYSDATE() > DATE_ADD(END_DT, INTERVAL 14 HOUR)
                 ELSE SYSDATE() > DATE_ADD(END_DT, INTERVAL 23*60 + 59 MINUTE) END
+            <if test="keyword!=null and !keyword.equalsIgnoreCase('')">
+                AND (
+                   CAR_NUM   LIKE CONCAT('%', #{keyword}, '%')
+                OR SBMT_NAME LIKE CONCAT('%', #{keyword}, '%')
+                OR DEST      LIKE CONCAT('%', #{keyword}, '%')
+                )
+            </if>
     </select>
 
     <update id="updateDrivingInfo" parameterType="map">

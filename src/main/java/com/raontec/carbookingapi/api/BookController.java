@@ -43,13 +43,17 @@ public class BookController {
         return ResponseEntity.ok().build();
     }
 
-    @Description(value = "사용자별 운행 스케줄 조회")
+    @Description(value = "운행 스케줄 조회")
     @GetMapping(value="/getDrivingSchedule", produces = {"application/json"})
-    public ResponseEntity<?> getDrivingSchedule(@RequestParam(required = false) String userId) {
+    public ResponseEntity<?> getDrivingSchedule(@RequestParam(required = false) String userId,
+            @RequestParam(required = false) String keyword) {
         List<Map<String, String>> resultList = new ArrayList<>();
-
+        Map<String, String> param = new HashMap<>();
+        param.put("userId", userId);
+        param.put("keyword", keyword);
         try {
-            resultList = bookDAO.getDrivingSchedule(userId);
+            resultList = bookDAO.getDrivingSchedule(param);
+
         } catch(RuntimeException e) {
             log.error("getDrivingSchedule RuntimeException");
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
@@ -58,12 +62,16 @@ public class BookController {
         return ResponseEntity.ok(resultList);
     }
 
-    @Description(value = "사용자별 운행 기록 조회")
+    @Description(value = "운행 기록 조회")
     @GetMapping(value = "/getDrivingHistory", produces = {"application/json"})
-    public ResponseEntity<?> getDrivingHistory(@RequestParam(required = false) String userId) {
+    public ResponseEntity<?> getDrivingHistory(@RequestParam(required = false) String userId,
+           @RequestParam(required = false) String keyword) {
         List<Map<String, String>> resultList = new ArrayList<>();
+        Map<String, String> param = new HashMap<>();
+        param.put("userId", userId);
+        param.put("keyword", keyword);
         try {
-            resultList = bookDAO.getDrivingHistory(userId);
+            resultList = bookDAO.getDrivingHistory(param);
         } catch(RuntimeException e) {
             log.error("getDrivingHistory RumtimeException");
         }
@@ -89,10 +97,15 @@ public class BookController {
     @Description(value = "주차위치 미등록 예약정보 조회")
     @Transactional
     @GetMapping(value = "/getUnrecordedBooking", produces = {"application/json"})
-    public ResponseEntity<?> getUnrecordedBooking(@RequestParam(required = false) String carNumber) {
+    public ResponseEntity<?> getUnrecordedBooking(@RequestParam(required = false) String carNumber,
+          @RequestParam(required = false) String keyword) {
         List<Map<String, String>> resultList = new ArrayList<>();
+        Map<String, String> param = new HashMap<>();
+        param.put("carNumber", carNumber);
+        param.put("keyword", keyword);
+
         try {
-            resultList = bookDAO.getUnrecordedBooking(carNumber);
+            resultList = bookDAO.getUnrecordedBooking(param);
         } catch(RuntimeException e) {
             log.error("getUnrecordedBooking RuntimeException");
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)

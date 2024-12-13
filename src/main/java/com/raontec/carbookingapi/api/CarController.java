@@ -79,8 +79,6 @@ public class CarController {
         String modCarNumber = param.get("modCarNumber");
 
         try {
-            System.out.println(param);
-
             // 차량상태가 수정된 경우 해당 차량 스케줄 체크
             if( !param.get("carStatusCd").equals("CST0")
                 && !carDAO.getCarBookSchedule(param).isEmpty()) {

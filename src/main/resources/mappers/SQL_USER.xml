@@ -95,7 +95,7 @@
             USER_RANK,
             IF(USER_RANK=0, '관리자', '사용자') AS USER_RANK_NAME,
             DATE_FORMAT(REG_DT, '%Y-%m-%d %H:%i:%s') AS REG_DT,
-            NVL(UPD_DT, '-') AS UPD_DT,
+            NVL(DATE_FORMAT(UPD_DT, '%Y-%m-%d %H:%i:%s'), '') AS UPD_DT,
             DENY_USE_YN,
             IF(DENY_USE_YN='Y', '제한', '없음') AS DENY_USE
         FROM

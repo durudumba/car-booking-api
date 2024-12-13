@@ -43,10 +43,16 @@ public class UserController {
     @Description(value = "로그인")
     @PostMapping(value="/login")
     public ResponseEntity<?> login (LoginRequestDto loginDto, HttpServletRequest request) {
-        if(userDAO.isDeniedUser(loginDto.getUserId()).equals("Y")) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                    .body("접근 제한된 계정입니다");
+        try {
+            if(userDAO.isDeniedUser(loginDto.getUserId()).equals("Y")) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                        .body("접근 제한된 계정입니다");
+            }
+        } catch (NullPointerException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("아이디와 비밀번호를 확인하세요");
         }
+
 
         try {
             UsernamePasswordAuthenticationToken authenticationToken = loginDto.toAuthentication();
