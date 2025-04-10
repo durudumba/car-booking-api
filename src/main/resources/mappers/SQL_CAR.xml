@@ -20,16 +20,21 @@
                     SELECT
                         CAR_NUM
                     FROM
-                        TB_CAR_BOOK_SCHD
+                        (SELECT
+                             CAR_NUM,
+                             CASE STRT_TMCD
+                                 WHEN 'TDC2' THEN DATE_ADD(STRT_DT, INTERVAL 14 HOUR)
+                                 ELSE DATE_ADD(STRT_DT, INTERVAL 0 HOUR) END STRT_DATETIME,
+                             CASE END_TMCD
+                                 WHEN 'TDC1' THEN DATE_ADD(END_DT, INTERVAL 13*60 + 59 MINUTE)
+                                 ELSE DATE_ADD(END_DT, INTERVAL 23*60 + 59 MINUTE) END END_DATETIME
+                         FROM
+                             TB_CAR_BOOK_SCHD
+                        ) A
                     WHERE 1=1
-                        AND
-                            CASE STRT_TMCD
-                                WHEN 'TDC2' THEN STR_TO_DATE(#{eddt}, '%Y-%m-%d %H%i%s') <![CDATA[>]]> DATE_ADD(STRT_DT, INTERVAL 14 HOUR)
-                                ELSE STR_TO_DATE(#{eddt}, '%Y-%m-%d %H%i%s') <![CDATA[>]]> DATE_ADD(STRT_DT, INTERVAL 0 HOUR) END
-                        AND
-                            CASE END_TMCD
-                                WHEN 'TDC1' THEN STR_TO_DATE(#{stdt}, '%Y-%m-%d %H%i%s') <![CDATA[<]]> DATE_ADD(END_DT, INTERVAL 14 HOUR)
-                                ELSE STR_TO_DATE(#{stdt}, '%Y-%m-%d %H%i%s') <![CDATA[<]]> DATE_ADD(END_DT, INTERVAL 23*60 + 59 MINUTE) END
+                        AND A.END_DATETIME <![CDATA[<]]> NOW()
+                        OR STR_TO_DATE(#{eddt}, '%Y-%m-%d %H%i%s') <![CDATA[>]]> A.STRT_DATETIME
+                        AND STR_TO_DATE(#{stdt}, '%Y-%m-%d %H%i%s') <![CDATA[<]]> A.END_DATETIME
                 )
     </select>
 
