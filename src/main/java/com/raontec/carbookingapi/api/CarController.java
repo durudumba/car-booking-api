@@ -57,6 +57,11 @@ public class CarController {
     @Transactional
     @PostMapping(value = "/insertCarInfo", produces = {"application/json"})
     public ResponseEntity<?> insertCarInfo(@RequestParam Map<String, String> param) {
+        if(carDAO.checkCarNumber(param) > 0) {
+            return ResponseEntity.status(HttpStatus.FOUND)
+                    .body("이미 존재하는 차량 번호!");
+        }
+
         try {
             carDAO.insertCarInfo(param);
             carDAO.insertCarStatus(param);

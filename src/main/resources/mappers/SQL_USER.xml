@@ -7,7 +7,6 @@
             (
                 USER_ID,
                 USER_PW,
-                USER_NAME,
                 USER_RANK,
                 REG_DT
             )
@@ -15,8 +14,7 @@
             (
                 #{userId},
                 #{userPw},
-                #{userName},
-                1,
+                #{userRank},
                 NOW()
             )
     </insert>
@@ -64,7 +62,6 @@
         SELECT
             USER_ID,
             USER_PW,
-            USER_NAME,
             USER_RANK,
             REG_DT,
             UPD_DT
@@ -91,7 +88,6 @@
     <select id="selectUserList" resultType="map">
         SELECT
             USER_ID,
-            USER_NAME,
             USER_RANK,
             IF(USER_RANK=0, '관리자', '사용자') AS USER_RANK_NAME,
             DATE_FORMAT(REG_DT, '%Y-%m-%d %H:%i:%s') AS REG_DT,
@@ -109,6 +105,15 @@
 
     <delete id="deleteUserSchedule" parameterType="map">
         DELETE FROM TB_CAR_BOOK_SCHD
-        WHERE SBMT_NAME = (SELECT USER_NAME FROM TB_USER WHERE USER_ID = #{userId})
+        WHERE SBMT_NAME = #{userId}
     </delete>
+
+    <update id="updateNewPw" parameterType="com.raontec.carbookingapi.objects.pwChangeVO">
+        UPDATE
+            TB_USER
+        SET
+            USER_PW = #{encodedNewPw}
+        WHERE 1=1
+            AND USER_ID = #{userId}
+    </update>
 </mapper>

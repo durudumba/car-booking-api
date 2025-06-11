@@ -4,8 +4,8 @@ import com.raontec.carbookingapi.data.UserDAO;
 import com.raontec.carbookingapi.jwt.LoginRequestDto;
 import com.raontec.carbookingapi.jwt.TokenDto;
 import com.raontec.carbookingapi.jwt.TokenProvider;
-import com.raontec.carbookingapi.objects.SignUpVO;
 import com.raontec.carbookingapi.objects.UserVO;
+import com.raontec.carbookingapi.objects.pwChangeVO;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -66,26 +66,26 @@ public class UserController {
         }
     }
 
-    @Description(value = "회원가입")
+    @Description(value = "사용자 등록")
     @Transactional
-    @PostMapping(value="/sign-up", produces = {"application/json"})
-    public ResponseEntity<?> insertUser(UserVO vo) {
+    @PostMapping(value="/insertUser", produces = {"application/json"})
+    public ResponseEntity<?> insertUser(UserVO vo, HttpServletRequest request) {
         if(userDAO.getUserInfo(vo.getUserId()).isPresent()) {
-            return ResponseEntity.status(HttpStatus.CONFLICT)
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("해당 ID는 사용할 수 없습니다");
         }
 
         HashMap<String, String> map = new HashMap<>();
         map.put("userId", vo.getUserId());
         map.put("userPw", passwordEncoder.encode(vo.getUserPw()));
-        map.put("userName", vo.getUserName());
+        map.put("userRank", String.valueOf(vo.getUserRank()));
 
         try {
             userDAO.insertUser(map);
         } catch (RuntimeException e) {
             log.error("insertUser RuntimeException");
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("회원가입 실패");
+                    .body("사용자등록 실패");
         }
 
         return ResponseEntity.ok().build();
@@ -178,6 +178,28 @@ public class UserController {
             log.error("deleteUserInfo RuntimeException");
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("사용자 정보 삭제 에러!");
+        }
+        return ResponseEntity.ok().build();
+    }
+
+    @Description(value = "사용자 비밀번호 변경")
+    @Transactional
+    @PostMapping(value = "/userPwChange", produces = {"application/json"})
+    public ResponseEntity<?> userPwChange(pwChangeVO vo) {
+        try {
+            Map<String, String> userInfo = userDAO.selectUserInfo(vo.getUserId());
+
+            if(!passwordEncoder.matches(vo.getCurPw(), userInfo.get("USER_PW"))) {
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                        .body("현재 비밀번호와 다릅니다");
+            }
+
+            vo.setEncodedNewPw(passwordEncoder.encode(vo.getNewPw()));
+            userDAO.updateNewPw(vo);
+        } catch(RuntimeException e) {
+            log.error("userPwChange RuntimeException");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("사용자 비밀번호 변경 에러!");
         }
         return ResponseEntity.ok().build();
     }

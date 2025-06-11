@@ -125,8 +125,7 @@
                    LEFT JOIN TB_PARK_LOC C ON A.CAR_NUM = C.CAR_NUM
         WHERE 1=1
           <if test="userId!=null and !userId.equalsIgnoreCase('')">
-              AND A.SBMT_NAME =
-              (SELECT USER_NAME FROM TB_USER WHERE USER_ID = #{userId})
+              AND A.SBMT_NAME = #{userId}
           </if>
         <if test="keyword!=null and !keyword.equalsIgnoreCase('')">
             AND
@@ -161,8 +160,7 @@
             TH_CAR_BOOK A LEFT JOIN TB_CAR B ON A.CAR_NUM = B.CAR_NUM
         WHERE 1=1
             <if test="userId != null and !userId.equalsIgnoreCase('')">
-                AND A.SBMT_NAME =
-                (SELECT USER_NAME FROM TB_USER WHERE USER_ID = #{userId})
+                AND A.SBMT_NAME = #{userId}
             </if>
             <if test="keyword!=null and !keyword.equalsIgnoreCase('')">
                 AND (

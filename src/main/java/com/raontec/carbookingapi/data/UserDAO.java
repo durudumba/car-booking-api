@@ -1,7 +1,7 @@
 package com.raontec.carbookingapi.data;
 
-import com.raontec.carbookingapi.objects.SignUpVO;
 import com.raontec.carbookingapi.objects.UserVO;
+import com.raontec.carbookingapi.objects.pwChangeVO;
 import org.apache.ibatis.annotations.Mapper;
 
 import java.sql.SQLException;
@@ -16,6 +16,7 @@ public interface UserDAO {
     int updateUserInfo(Map map);
     int deleteUserInfo(Map map);
     int deleteUserSchedule(Map map);
+    int updateNewPw(pwChangeVO vo);
 
     String isDeniedUser(String userId);
     Map<String, String> getPageAccessAuth(Map map);

@@ -81,6 +81,16 @@
             AND CAR_NUM = #{carNumber}
     </select>
 
+    <select id="checkCarNumber" parameterType="map" resultType="int">
+        SELECT
+            COUNT(*)
+        FROM
+            TB_CAR
+        WHERE 1=1
+            AND CAR_NUM = #{carNumber}
+            AND DEL_YN = 'N'
+    </select>
+
     <insert id="insertCarInfo" parameterType="map">
         INSERT INTO TB_CAR
             (CAR_NUM,
@@ -96,6 +106,13 @@
              #{rmrk},
              'N',
              NOW())
+        ON DUPLICATE KEY UPDATE
+            CAR_MODL = #{carModel},
+            FUEL_TYPE_CD = #{fuelTypeCd},
+            RMRK = #{rmrk},
+            DEL_YN = 'N',
+            REG_DT = NOW(),
+            UPD_DT = null
     </insert>
 
     <insert id="insertCarStatus" parameterType="map">
@@ -109,6 +126,11 @@
              #{carStatusCd},
              'N',
              NOW())
+        ON DUPLICATE KEY UPDATE
+            CAR_STTS_CD = #{carStatusCd},
+            DEL_YN = 'N',
+            REG_DT = NOW(),
+            UPD_DT = null
     </insert>
 
     <insert id="insertParkingLoc" parameterType="map">
@@ -124,6 +146,12 @@
              'N',
              #{rmrk},
              NOW())
+        ON DUPLICATE KEY UPDATE
+            PARK_LOC = #{parkingLocation},
+            DEL_YN = 'N',
+            RMRK = #{rmrk},
+            REG_DT = NOW(),
+            UPD_DT = null
     </insert>
 
     <update id="updateCarInfo" parameterType="map">
