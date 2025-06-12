@@ -23,6 +23,7 @@ import java.util.Map;
 @Slf4j
 @RequiredArgsConstructor
 @CrossOrigin("*")
+@RestController
 @RequestMapping("/api/book")
 public class BookController {
 
