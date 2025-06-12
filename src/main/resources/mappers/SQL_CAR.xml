@@ -165,7 +165,9 @@
             A.UPD_DT = NOW(),
             B.CAR_STTS_CD = #{carStatusCd},
             B.UPD_DT = NOW(),
-            C.PARK_LOC = #{parkingLocation}
+            C.PARK_LOC = #{parkingLocation},
+            C.REG_USER = #{adminId},
+            C.UPD_DT = NOW()
         WHERE 1=1
             AND A.CAR_NUM = #{carNumber}
             AND B.CAR_NUM = #{carNumber}
