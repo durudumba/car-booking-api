@@ -222,4 +222,14 @@
         WHERE
             BOOK_ID = #{BOOK_ID}
     </update>
+
+    <select id="getPrevSchedule" parameterType="map">
+        SELECT
+            BOOK_ID
+        FROM
+            TB_CAR_BOOK_SCHD
+        WHERE 1=1
+            AND CAR_NUM = #{CAR_NUM}
+            AND STRT_DT <![CDATA[<]]> STR_TO_DATE(#{STRT_DT}, '%Y-%m-%d')
+    </select>
 </mapper>

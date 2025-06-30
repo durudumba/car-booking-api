@@ -84,6 +84,11 @@ public class BookController {
     @PostMapping(value = "/postDrivingRecord", produces = {"application/json"})
     public ResponseEntity<?> postDrivingRecord(@RequestParam Map<String, String> param) {
         try {
+            if(param.get("DRIV_YN").equals("Y") && !bookDAO.getPrevSchedule(param).isEmpty()) {
+                return ResponseEntity.status(HttpStatus.LOCKED)
+                        .body("해당 차량에 완료되지 않은 이전 일정이 있는 경우 등록할 수 없습니다.");
+            }
+
             bookDAO.insertCarBookHistory(param);
             bookDAO.updateParkingLocation(param);
             bookDAO.deleteCarSchedule(param);
