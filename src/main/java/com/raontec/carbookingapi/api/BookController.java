@@ -1,6 +1,7 @@
 package com.raontec.carbookingapi.api;
 
 import com.raontec.carbookingapi.data.BookDAO;
+import com.raontec.carbookingapi.data.CarDAO;
 import com.raontec.carbookingapi.objects.BookAppFormVO;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -28,13 +29,21 @@ import java.util.Map;
 public class BookController {
 
     private final BookDAO bookDAO;
-    private final ConversionService conversionService;
+    private final CarDAO carDAO;
 
     @Description(value = "차량 사용 신청")
     @Transactional
     @PutMapping(value="", produces = {"application/json"})
     public ResponseEntity<?> carBooking(@Valid BookAppFormVO bookAppForm) {
         try {
+            Map<String, String> param = new HashMap<>();
+            param.put("stdt", bookAppForm.getStartDate());
+            param.put("eddt", bookAppForm.getEndDate());
+            if(carDAO.selectCarList(param).stream().filter(carInfo -> carInfo.get("CAR_NUM").equals(bookAppForm.getCarNumber())).count()==0) {
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                        .body("일시적인 오류로 해당 차량 사용신청이 불가합니다!");
+            }
+
             bookDAO.insertCarBook(bookAppForm);         // 차량 예약 스케줄 추가
         } catch (RuntimeException e) {
             log.error("carBooking RumtimeException");
