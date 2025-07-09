@@ -45,7 +45,7 @@ public class UserController {
     public ResponseEntity<?> login (LoginRequestDto loginDto, HttpServletRequest request) {
         try {
             if(userDAO.isDeniedUser(loginDto.getUserId()).equals("Y")) {
-                return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                         .body("접근 제한된 계정입니다");
             }
         } catch (NullPointerException e) {

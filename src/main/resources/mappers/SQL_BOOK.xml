@@ -145,6 +145,7 @@
             IF(A.DRIV_YN='Y', '운행', '미운행/취소') AS DRIV_YN,
             A.CAR_NUM,
             A.CAR_DRVR,
+            A.SBMT_NAME,
             A.CAR_PSGR,
             A.DEST,
             A.USE_PRPS,
