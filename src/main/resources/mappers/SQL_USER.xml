@@ -96,6 +96,7 @@
             IF(DENY_USE_YN='Y', '제한', '없음') AS DENY_USE
         FROM
             TB_USER
+        ORDER BY USER_RANK, USER_ID
     </select>
 
     <delete id="deleteUserInfo" parameterType="map">
