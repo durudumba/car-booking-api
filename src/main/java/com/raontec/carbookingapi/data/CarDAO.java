@@ -13,6 +13,7 @@ public interface CarDAO {
     Map<String, String> getCarInfo(String carNumber);
     List<Map<String, String>> getCarBookSchedule(Map<String, String> map);
 
+    int checkCarNumber(Map<String, String> map);
     int insertCarInfo(Map<String, String> map);
     int insertCarStatus(Map<String, String> map);
     int insertParkingLoc(Map<String, String> map);

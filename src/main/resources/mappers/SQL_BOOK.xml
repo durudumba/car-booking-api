@@ -79,8 +79,11 @@
         UPDATE
             TB_PARK_LOC
         SET
-            PARK_LOC = #{PARK_LOC},
-            UPD_DT = NOW()
+            PARK_LOC =
+                CASE WHEN #{DRIV_YN} = 'Y' THEN #{PARK_LOC}
+                ELSE PARK_LOC END,
+            UPD_DT = NOW(),
+            REG_USER = #{REG_USER}
         WHERE
             CAR_NUM = #{CAR_NUM}
     </update>
@@ -117,16 +120,13 @@
             B.FUEL_TYPE_CD,
             (SELECT COMM_CD_NAME FROM TB_COMM_CD WHERE COMM_CD = B.FUEL_TYPE_CD) AS FUEL_TYPE,
             C.PARK_LOC,
-            NVL((SELECT SBMT_NAME FROM TH_CAR_BOOK WHERE CAR_NUM = A.CAR_NUM
-                    AND END_DT = (SELECT MAX(END_DT) FROM th_car_book WHERE CAR_NUM = A.CAR_NUM)
-                    AND DRIV_YN = 'Y'), '') AS RCNT_USER
+            C.REG_USER AS RCNT_USER
         FROM
             TB_CAR_BOOK_SCHD A LEFT JOIN TB_CAR B ON A.CAR_NUM = B.CAR_NUM
                    LEFT JOIN TB_PARK_LOC C ON A.CAR_NUM = C.CAR_NUM
         WHERE 1=1
           <if test="userId!=null and !userId.equalsIgnoreCase('')">
-              AND A.SBMT_NAME =
-              (SELECT USER_NAME FROM TB_USER WHERE USER_ID = #{userId})
+              AND A.SBMT_NAME = #{userId}
           </if>
         <if test="keyword!=null and !keyword.equalsIgnoreCase('')">
             AND
@@ -145,6 +145,7 @@
             IF(A.DRIV_YN='Y', '운행', '미운행/취소') AS DRIV_YN,
             A.CAR_NUM,
             A.CAR_DRVR,
+            A.SBMT_NAME,
             A.CAR_PSGR,
             A.DEST,
             A.USE_PRPS,
@@ -161,8 +162,7 @@
             TH_CAR_BOOK A LEFT JOIN TB_CAR B ON A.CAR_NUM = B.CAR_NUM
         WHERE 1=1
             <if test="userId != null and !userId.equalsIgnoreCase('')">
-                AND A.SBMT_NAME =
-                (SELECT USER_NAME FROM TB_USER WHERE USER_ID = #{userId})
+                AND A.SBMT_NAME = #{userId}
             </if>
             <if test="keyword!=null and !keyword.equalsIgnoreCase('')">
                 AND (
@@ -223,4 +223,14 @@
         WHERE
             BOOK_ID = #{BOOK_ID}
     </update>
+
+    <select id="getPrevSchedule" parameterType="map">
+        SELECT
+            BOOK_ID
+        FROM
+            TB_CAR_BOOK_SCHD
+        WHERE 1=1
+            AND CAR_NUM = #{CAR_NUM}
+            AND STRT_DT <![CDATA[<]]> STR_TO_DATE(#{STRT_DT}, '%Y-%m-%d')
+    </select>
 </mapper>

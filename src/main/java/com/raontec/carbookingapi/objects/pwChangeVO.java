@@ -4,16 +4,13 @@ import lombok.Data;
 import lombok.NonNull;
 
 @Data
-public class SignUpVO {
+public class pwChangeVO {
     @NonNull
     private String userId;
     @NonNull
-    private String userName;
+    private String curPw;
     @NonNull
-    private String userPw;
+    private String newPw;
 
-    private String encodedUserPw;
-
-    private String userRank;
-
+    private String encodedNewPw;
 }

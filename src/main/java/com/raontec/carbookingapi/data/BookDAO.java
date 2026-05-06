@@ -18,4 +18,5 @@ public interface BookDAO {
     List<Map<String, String>> getDrivingHistory(Map map);
     List<Map<String, String>> getDrivingSchedule(Map map);
     List<Map<String, String>> getUnrecordedBooking(Map map);
+    List<Map<String, String>> getPrevSchedule(Map map);
 }
